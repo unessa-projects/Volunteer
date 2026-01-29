@@ -1,0 +1,277 @@
+import express from "express";
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+import axios from "axios";
+import { sendWhatsAppMessage } from "../services/whatsappService.js";
+const router = express.Router();
+
+// Webhook trigger function
+const triggerWebhook = async (data, retries = 2, attempt = 1) => {
+  try {
+    console.log(`📡 Sending webhook attempt ${attempt}...`);
+    const res = await axios.post(process.env.PABBLY_CONNECT_WEBHOOK_URL, data, {
+      headers: { "Content-Type": "application/json" }
+    });
+    console.log("✅ Webhook triggered successfully:", res.status);
+  } catch (err) {
+    console.error("❌ Webhook error:", err.message);
+    if (err.response) {
+      console.error("Status:", err.response.status);
+      console.error("Response data:", err.response.data);
+    }
+    if (retries > 0) {
+      const delay = attempt * 60000;
+      console.log(`🔄 Retrying webhook in ${delay / 60000} minute(s)...`);
+      setTimeout(() => {
+        triggerWebhook(data, retries - 1, attempt + 1);
+      }, delay);
+    } else {
+      console.error("🚨 Webhook failed after all retries");
+    }
+  }
+};
+
+// ✅ Check if user exists
+router.post("/check-user", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    res.json({ exists: !!user });
+  } catch (err) {
+    console.error("Check user error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ Register user
+router.post("/register", async (req, res) => {
+  try {
+    const { name, email, number, avatar, username } = req.body;
+
+    if (!email) return res.status(400).json({ error: "Email is required", field: "email" });
+    if (!name) return res.status(400).json({ error: "Name is required", field: "name" });
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ error: "Invalid email format", field: "email" });
+    }
+
+    let finalUsername = username;
+    if (!finalUsername) {
+      const baseUsername = name.toLowerCase().replace(/\s+/g, "");
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      finalUsername = `${baseUsername}${randomSuffix}`;
+    }
+       // Add 91 prefix to number
+    const formattedNumber = number ? `+91${number.replace(/^91/, "")}` : "";
+
+    const newUser = new User({
+      name: name.trim(),
+      email: cleanEmail,
+      number: number?.trim(),
+      avatar,
+      username: finalUsername,
+      role: "Fundraiser_External",
+
+      // ✅ Ensure dates are set
+      generatedAt: new Date(),
+      internshipStartDate: new Date()
+    });
+
+    await newUser.save();
+    console.log("User registered successfully:", newUser.email);
+     const paymentLink = `https://unessafoundation.org/donate?ref=${newUser.username}`;
+      const welcomeMessage = `Hi ${newUser.name}! 👋
+
+Welcome to the Unessa Foundation family 💙
+I’m Sabah, and I’ll be guiding you through this 30-day fundraising journey.
+
+Remember, we’re all working towards empowering underprivileged children through education 📚✨.
+You can always reach out to me here for any queries. Let’s transform lives, together.
+
+Your personalized fundraising link is: ${paymentLink}
+
+Buttons – Do you have any questions (Y/N)`;
+
+sendWhatsAppMessage(newUser.number, welcomeMessage);
+
+    triggerWebhook({
+      name: newUser.name,
+      email: newUser.email,
+      number: newUser.number
+    });
+
+    const token = jwt.sign(
+      { id: newUser._id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "User registered successfully",
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        username: newUser.username,
+        avatar: newUser.avatar,
+        role: newUser.role
+      },
+      token
+    });
+  } catch (err) {
+    console.error("Registration error:", err);
+    if (err.code === 11000) {
+      const field = err.message.includes("email") ? "email" : "username";
+      return res.status(400).json({ error: `${field} already exists`, field });
+    }
+    if (err.name === "ValidationError") {
+      const errors = {};
+      Object.keys(err.errors).forEach(key => { errors[key] = err.errors[key].message; });
+      return res.status(400).json({ error: "Validation failed", details: errors });
+    }
+    res.status(500).json({ error: "Registration failed", details: err.message });
+  }
+});
+
+// ✅ Get user by email
+router.get("/get-user/:email", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      email: user.email,
+      name: user.name,
+      username: user.username,
+      id: user._id,
+      avatar: user.avatar,
+      role: user.role || "Fundraiser_External",
+        generatedAt: user.generatedAt,             
+      internshipStartDate: user.internshipStartDate,
+      hasSeenTour: user.hasSeenTour?? false 
+    });
+  } catch (err) {
+    console.error("Fetch Error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// :white_check_mark: Get user details including certificate status
+router.get("/details/:email", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json({
+      certificateSent: user.certificateSent,
+      generatedAt: user.generatedAt,
+      quizStatus: user.quizStatus
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// :white_check_mark: Mark certificate as sent
+router.post("/mark-certificate-sent", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { certificateSent: true },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({
+      success: true,
+      message: "Certificate marked as sent",
+      certificateSent: user.certificateSent
+    });
+  } catch (err) {
+    console.error("Error marking certificate as sent:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ✅ Get internship start date
+router.get("/start-date/:email", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ startDate: user.internshipStartDate });
+  } catch (err) {
+    console.error("Fetch start date error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ Get generatedAt date
+router.get("/generated-date/:email", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({ generatedAt: user.generatedAt });
+  } catch (err) {
+    console.error("Fetch generatedAt error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ✅ Update Quiz Status
+router.post("/quiz-status", async (req, res) => {
+  try {
+    const { email, status } = req.body;
+    if (!["notAttempted", "passed", "failed"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { quizStatus: status,
+        quizPassed: status === "passed"
+       },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ success: true, quizStatus: user.quizStatus });
+  } catch (err) {
+    console.error("Error updating quiz status:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ✅ Get Quiz Status
+router.get("/quiz-status/:email", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.params.email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ quizStatus: user.quizStatus });
+  } catch (err) {
+    console.error("Error fetching quiz status:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ✅ Mark Tour Seen
+router.post("/mark-tour-seen", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { hasSeenTour: true },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+export default router;

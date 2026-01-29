@@ -1,0 +1,67 @@
+/* introjs-custom.css */
+.introjs-theme-custom {
+    background-color: #043238;
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 400px;
+  }
+  
+  .introjs-theme-custom .introjs-tooltip-header {
+    color: #FFB823;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+  }
+  
+  .introjs-theme-custom .introjs-tooltip-title {
+    font-size: 1.1rem;
+    color: #FFB823;
+  }
+  
+  .introjs-theme-custom .introjs-tooltiptext {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .introjs-highlight-custom {
+    background: rgba(255, 184, 35, 0.2);
+    border: 2px solid #FFB823;
+    border-radius: 12px;
+  }
+  
+  .introjs-theme-custom .introjs-button {
+    background-color: #FFB823;
+    color: #043238;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: 600;
+    text-shadow: none;
+    margin: 0 5px;
+  }
+  
+  .introjs-theme-custom .introjs-button:hover {
+    background-color: #ECA90E;
+    box-shadow: none;
+  }
+  
+  .introjs-theme-custom .introjs-button.introjs-skipbutton {
+    background-color: transparent;
+    color: #FFB823;
+  }
+  
+  .introjs-theme-custom .introjs-progress {
+    background-color: rgba(255, 184, 35, 0.3);
+  }
+  
+  .introjs-theme-custom .introjs-progressbar {
+    background-color: #FFB823;
+  }
+  
+  .introjs-theme-custom .introjs-bullets ul li a {
+    background: rgba(255, 184, 35, 0.3);
+  }
+  
+  .introjs-theme-custom .introjs-bullets ul li a.active {
+    background: #FFB823;
+  }

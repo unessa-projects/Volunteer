@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Certificate of Internship</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #F0F8FF;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .certificate {
+      background: #fff;
+      width: 100%;
+      max-width: 900px;
+      padding: 50px;
+      border: 5px solid #00A8A8;
+      position: relative;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    /* Watermark */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 80px;
+      color: rgba(0, 168, 168, 0.1);
+      font-weight: bold;
+      pointer-events: none;
+      z-index: 0;
+      white-space: nowrap;
+    }
+    /* Logo */
+    .logo-container {
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 1;
+    }
+    .logo-container img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain; /* keeps it square */
+    }
+    /* Titles */
+    .certificate-title {
+      font-size: 38px;
+      color: #004D4D;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      z-index: 1;
+      position: relative;
+    }
+    .certificate-subtitle {
+      font-size: 20px;
+      color: #006666;
+      margin: 0 0 40px;
+      font-weight: normal;
+      position: relative;
+      display: inline-block;
+      z-index: 1;
+    }
+    .certificate-subtitle:after {
+      content: "";
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 3px;
+      background: linear-gradient(to right, #007BFF, #8A2BE2);
+    }
+    /* Body */
+    .certificate-body {
+      margin: 25px 0;
+      padding: 0 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .intro-text {
+      font-size: 18px;
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+    .name {
+      font-size: 30px;
+      color: #006666;
+      margin: 25px 0;
+      font-weight: bold;
+      padding: 15px;
+      background: #F0F8FF;
+      display: inline-block;
+      border-left: 4px solid #00A8A8;
+      border-right: 4px solid #00A8A8;
+    }
+    .details {
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+    .quote {
+      font-style: italic;
+      font-size: 20px;
+      color: #007BFF;
+      margin: 25px 0;
+      padding: 20px;
+      border-top: 2px solid #E6E6E6;
+      border-bottom: 2px solid #E6E6E6;
+      position: relative;
+    }
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      padding: 0 20px;
+      z-index: 1;
+      position: relative;
+    }
+    .date-container {
+      text-align: left;
+    }
+    .signature-container {
+      text-align: right;
+    }
+    .signature-container img {
+      width: 150px;
+      display: block;
+      margin-left: auto;
+    }
+    .signature-name {
+      font-weight: bold;
+      color: #006666;
+      margin-top: 5px;
+    }
+    /* Decorative Corners */
+    .corner {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+    }
+    .corner-tl {
+      top: 20px;
+      left: 20px;
+      border-top: 3px solid #00A8A8;
+      border-left: 3px solid #00A8A8;
+    }
+    .corner-tr {
+      top: 20px;
+      right: 20px;
+      border-top: 3px solid #00A8A8;
+      border-right: 3px solid #00A8A8;
+    }
+    .corner-bl {
+      bottom: 20px;
+      left: 20px;
+      border-bottom: 3px solid #00A8A8;
+      border-left: 3px solid #00A8A8;
+    }
+    .corner-br {
+      bottom: 20px;
+      right: 20px;
+      border-bottom: 3px solid #00A8A8;
+      border-right: 3px solid #00A8A8;
+    }
+  </style>
+</head>
+<body>
+  <div class="certificate">
+    <!-- Decorative corners -->
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="corner corner-bl"></div>
+    <div class="corner corner-br"></div>
+    <!-- Watermark -->
+    <div class="watermark">UNESSA FOUNDATION</div>
+    <!-- Logo -->
+    <div class="logo-container">
+      <img src="{{logo}}" alt="Unessa Foundation Logo" />
+    </div>
+    <!-- Title -->
+    <h1 class="certificate-title">Certificate of Internship</h1>
+    <h2 class="certificate-subtitle">Acknowledgment of Achievement</h2>
+    <!-- Body -->
+    <div class="certificate-body">
+      <p class="intro-text">This is to certify that</p>
+      <div class="name">{{name}}</div>
+      <p class="details">
+        has successfully completed their internship as <strong>Fundraiser</strong><br>
+        at Unessa Foundation from <strong>{{startDate}}</strong> to <strong>{{endDate}}</strong>.
+      </p>
+      <p class="quote">You didn't wait for change - you became it</p>
+    </div>
+    <!-- Footer -->
+    <div class="footer">
+      <div class="date-container">
+        <p>Date of Issue</p>
+        <p><strong>{{date}}</strong></p>
+      </div>
+      <div class="signature-container">
+        <img src="{{signature}}" alt="Signature" />
+        <p class="signature-name">Sandeep Dwivedi</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
