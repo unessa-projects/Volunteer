@@ -28,7 +28,7 @@ const Page1 = () => {
           <span className="font-bold block mb-2">Step Into Purpose. Speak for Change.</span>
           Join a powerful movement to uplift <span className="font-bold">1500+ underprivileged children</span> through
           <span className="font-bold"> quality education, emotional wellness,</span> and 
-          <span className="font-bold"> self-expression</span>.
+          <span className="font-bold"> self</span>.
         </p>
   
         {/* Paragraph 2 */}
