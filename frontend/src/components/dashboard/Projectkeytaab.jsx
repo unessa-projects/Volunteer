@@ -179,7 +179,9 @@ const ProjectSneh = () => {
                 `}
                 whileHover={{ y: -5 }}
               >
-                <motion.div variants={starSpin} className="absolute -top-3 -left-3">
+                <motion.div variants={starSpin} className={`absolute -top-3 ${
+    block.position === "right" ? "-right-3" : "-left-3"
+  }`}>
                   {block.icon}
                 </motion.div>
                 <h2 className="text-2xl font-extrabold text-[#ECA90E] mb-3">{block.title}</h2>
@@ -222,7 +224,7 @@ const ProjectSneh = () => {
             {/* Highlight Block */}
             {block.type === "highlight" && (
               <motion.div 
-                className="bg-[#ECA90E]/10 backdrop-blur-sm p-8 rounded-3xl shadow-lg border-2 border-[#ECA90E]/30 h-full"
+                className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg h-full border-r-4 border-[#ECA90E]"
                 whileHover={{ scale: 1.01 }}
               >
                 <motion.div variants={starSpin} className="absolute -top-3 -right-3">

@@ -55,7 +55,7 @@ const UnderstandRole = () => {
             <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
           </svg>
         </motion.div>
-        <h1 className="text-[#ECA90E] text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4">
+        <h1 className="text-[#ECA90E] text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-6">
           You're not just a volunteer—you're a Fundraising Catalyst.
         </h1>
         <p className="text-gray-800 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl">

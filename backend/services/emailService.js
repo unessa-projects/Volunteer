@@ -1,50 +1,73 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import path from 'path';
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// load the .env that lives inside backend/
+// Load .env
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
-
-
+// 1. Configure the Transporter
 const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: process.env.MAIL_PORT,
-  secure: process.env.MAIL_PORT == 465, // true for 465, false for other ports
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false, // true for 465, false for other ports
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 });
 
-// Get the admin email from environment variables
-const adminEmail = process.env.ADMIN_EMAIL;
+// Verify connection configuration
+transporter.verify(function (error, success) {
+  if (error) {
+    console.log("❌ SMTP Connection Error:", error);
+  } else {
+    console.log("✅ SMTP Server is ready to take our messages");
+  }
+});
 
 /**
- * Sends a notification email to the system administrator.
- * @param {string} subject The subject of the email.
- * @param {string} htmlBody The HTML content of the email.
+ * Universal Send Email Function
+ * @param {string} to - Recipient email
+ * @param {string} subject - Email subject
+ * @param {string} text - Plain text body
+ * @param {string} html - HTML body
+ * @param {Array} attachments - Array of attachment objects { filename, content }
  */
-export const sendNotificationEmail = async (subject, htmlBody) => {
-  if (!adminEmail) {
-    console.error("ADMIN_EMAIL is not configured in .env file. Cannot send notification email.");
-    return;
-  }
-
+export const sendEmail = async ({ to, subject, text, html, attachments = [] }) => {
   const mailOptions = {
-    from: `"Unessa Foundation Bot" <${process.env.MAIL_FROM}>`,
-    to: adminEmail,
+    from: `"${process.env.MAIL_FROM_NAME}" <${process.env.MAIL_FROM}>`,
+    to: to,
     subject: subject,
-    html: htmlBody,
+    text: text,
+    html: html,
+    attachments: attachments,
   };
 
   try {
-    await transporter.sendMail(mailOptions);
-    console.log(`Notification email sent successfully to ${adminEmail}.`);
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`✅ Email sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error(`Failed to send notification email to ${adminEmail}:`, error);
+    console.error("❌ Error sending email:", error);
+    throw error;
   }
+};
+
+// Keep your existing admin notification function for backward compatibility
+export const sendNotificationEmail = async (subject, htmlBody) => {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.error("ADMIN_EMAIL not configured.");
+    return;
+  }
+  await sendEmail({
+    to: adminEmail,
+    subject: subject,
+    html: htmlBody,
+    text: "Please view this email in an HTML compatible viewer."
+  });
 };

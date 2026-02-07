@@ -70,7 +70,7 @@ const WhyInternship = () => {
         animate="show"
         whileHover={{ y: -5 }}
       >
-        <h2 className="text-[#ECA90E] text-xl sm:text-2xl md:text-3xl font-bold mb-4">
+        <h2 className="text-[#ECA90E] text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
           How this experience will shape your future
         </h2>
         <p className="text-gray-800 text-base sm:text-lg md:text-xl mb-6">
@@ -151,7 +151,7 @@ const WhyInternship = () => {
             </svg>
           </motion.div>
           <div>
-            <h2 className="text-[#ECA90E] text-xl sm:text-2xl md:text-3xl font-bold mb-3">
+            <h2 className="text-[#ECA90E] text-2xl sm:text-3xl md:text-4xl font-bold mb-3">
               Your resume will be full of wins, not just words.
             </h2>
             <p className="text-gray-800 text-base sm:text-lg md:text-xl">

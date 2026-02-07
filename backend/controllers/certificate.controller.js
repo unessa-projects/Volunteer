@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import playwright from "playwright";
 import User from "../models/User.js";
 import nodemailer from "nodemailer";
+import { sendEmail } from "../services/emailService.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -139,7 +140,7 @@ export const generateAndSendCertificate = async (req, res) => {
     }
 
     // :three: Send email using ZeptoMail
-    if (!process.env.ZEPTO_SMTP_PASS || !process.env.ZEPTO_MAIL_FROM) {
+    if (!process.env.SMTP_PASS || !process.env.MAIL_FROM) {
       return res.status(500).json({
         success: false,
         message: "ZeptoMail credentials not configured",
@@ -147,19 +148,19 @@ export const generateAndSendCertificate = async (req, res) => {
     }
 
     const transporter = nodemailer.createTransport({
-      host: process.env.ZEPTO_SMTP_HOST || "smtp.zeptomail.in",
-      port: parseInt(process.env.ZEPTO_SMTP_PORT) || 587,
+      host: process.env.SMTP_HOST || "smtp.zeptomail.in",
+      port: parseInt(process.env.SMTP_PORT) || 587,
       secure: false,
       auth: {
-        user: process.env.ZEPTO_SMTP_USER || "emailapikey",
-        pass: process.env.ZEPTO_SMTP_PASS,
+        user: process.env.SMTP_USER || "emailapikey",
+        pass: process.env.SMTP_PASS,
       },
     });
 
     const msg = {
       to: email,
       from: {
-        address: process.env.ZEPTO_MAIL_FROM,
+        address: process.env.MAIL_FROM,
         name: "Unessa Foundation",
       },
       subject: `Your Completion Certificate - ${name}`,
@@ -177,26 +178,31 @@ export const generateAndSendCertificate = async (req, res) => {
         },
       ],
     };
+      await sendEmail({
+      to: email,
+      subject: `Your Completion Certificate - ${name}`,
+      text: `Dear ${name},\n\nCongratulations! 🎉\nPlease find attached your official internship completion certificate.\n\nBest regards,\nUnessa Foundation`,
+      html: `<p>Dear ${name},</p>
+             <p>🎉 Congratulations on completing your internship!</p>
+             <p>Please find your official completion certificate attached.</p>
+             <p>Best regards,<br/>Unessa Foundation</p>`,
+      attachments: [
+        {
+          filename: `Certificate_${name.replace(/\s+/g, "_")}.pdf`,
+          content: pdfBuffer, // Nodemailer handles Buffers directly
+          contentType: "application/pdf",
+        },
+      ],
+    });
 
-    try {
-      await transporter.sendMail(msg);
-      console.log("✅ Certificate sent successfully to:", email);
-      
-      // :white_check_mark: Update user flag
-      await User.findOneAndUpdate({ email }, { certificateSent: true });
-      
-      res.status(200).json({
-        success: true,
-        message: "Certificate generated and sent successfully",
-      });
-    } catch (mailError) {
-      console.error("❌ Email failed:", mailError.message);
-      res.status(500).json({
-        success: false,
-        message: "Failed to send email",
-        error: mailError.message,
-      });
-    }
+    // ✅ Update user flag
+    await User.findOneAndUpdate({ email }, { certificateSent: true });
+
+    res.status(200).json({
+      success: true,
+      message: "Certificate generated and sent successfully",
+    });
+
   } catch (error) {
     console.error("❌ Error in generateAndSendCertificate:", error);
     res.status(500).json({
@@ -209,4 +215,4 @@ export const generateAndSendCertificate = async (req, res) => {
       await browser.close();
     }
   }
-};
+}

@@ -5,6 +5,7 @@ import playwright from "playwright";
 import User from "../models/User.js";
 import nodemailer from "nodemailer";
 // import sgMail from "@sendgrid/mail";
+import { sendEmail } from "../services/emailService.js";
      
 
 
@@ -149,7 +150,7 @@ export const generateAndSendOffer = async (req, res) => {
       subject: `Your Offer Letter - ${name}`,
       text: `Dear ${name},\n\nPlease find your official offer letter attached.\n\nBest regards,\nHR Team`,
       html: `<p>Dear ${name},</p>
-             <p>:tada: Congratulations! Please find your official offer letter attached.</p>
+             <p>😄 Congratulations! Please find your official offer letter attached.</p>
              <p>Best regards,<br/>HR Team</p>`,
       attachments: [
         {
@@ -163,32 +164,36 @@ export const generateAndSendOffer = async (req, res) => {
 
     // await sgMail.send(msg);
     // console.log(":e-mail: Offer letter sent successfully to:", email);
-   try {
-  await transporter.sendMail(msg);
-  console.log("📧 Offer letter sent to:", email);
-} catch (mailError) {
-  console.error("❌ Email failed:", mailError.message);
-  return res.status(500).json({
-    success: false,
-    message: "Email sending failed",
-    error: mailError.message
-  });
-}
+await sendEmail({
+      to: email,
+      subject: `Your Completion Certificate - ${name}`,
+      text: `Dear ${name},\n\nCongratulations! 🎉\nPlease find attached your official internship completion certificate.\n\nBest regards,\nUnessa Foundation`,
+      html: `<p>Dear ${name},</p>
+             <p>🎉 Congratulations on completing your internship!</p>
+             <p>Please find your official Offer letter attached.</p>
+             <p>Best regards,<br/>Unessa Foundation</p>`,
+      attachments: [
+        {
+          filename: `Certificate_${name.replace(/\s+/g, "_")}.pdf`,
+          content: pdfBuffer, // Nodemailer handles Buffers directly
+          contentType: "application/pdf",
+        },
+      ],
+    });
 
+    // ✅ Update user flag
+    await User.findOneAndUpdate({ email }, { certificateSent: true });
 
-    // 4️⃣ Respond success
     res.status(200).json({
       success: true,
-      message: "Offer letter generated and sent successfully",
+      message: "Offer generated and sent successfully",
     });
+
   } catch (error) {
-    console.error(
-      ":x: Error in generateAndSendOffer:",
-      error.response?.body || error
-    );
+    console.error("❌ Error in generateAndSendCertificate:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to generate and send offer letter",
+      message: "Failed to generate and send certificate",
       error: error.message,
     });
   } finally {
